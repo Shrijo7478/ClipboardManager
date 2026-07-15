@@ -1,0 +1,185 @@
+import SwiftUI
+import SwiftData
+
+struct ClipboardMainView: View {
+    @EnvironmentObject private var viewModel: ClipboardViewModel
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            searchBar
+                .padding(.horizontal, 14)
+                .padding(.bottom, 8)
+
+            Divider()
+                .opacity(0.3)
+
+            if viewModel.items.isEmpty {
+                emptyState
+            } else {
+                listContent
+            }
+
+            Divider()
+                .opacity(0.3)
+
+            settingsSection
+                .padding(14)
+        }
+        .frame(width: 420, height: 520)
+        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .background(WindowAccessor())
+    }
+
+    private var header: some View {
+        HStack {
+            Text("Clipboard History")
+                .font(.system(size: 15, weight: .semibold))
+            Spacer()
+            Button { NSApp.terminate(nil) } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("q", modifiers: [.command])
+        }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+                .font(.system(size: 12))
+            TextField("Search clipboard history", text: $viewModel.searchQuery)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.06), in: .rect(cornerRadius: 8))
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "doc.on.clipboard")
+                .font(.system(size: 30))
+                .foregroundColor(.secondary)
+            Text("No clipboard history yet")
+                .font(.system(size: 13, weight: .medium))
+            Text("Copy some text or images and they'll appear here.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var listContent: some View {
+        ScrollView {
+            GlassEffectContainer {
+                VStack(alignment: .leading, spacing: 6) {
+                    if !viewModel.pinnedItems.isEmpty {
+                        sectionHeader(icon: "pin.fill", label: "Pinned", tint: .orange)
+                        ForEach(viewModel.pinnedItems) { item in
+                            ClipboardRowView(
+                                item: item,
+                                onCopy: { viewModel.copyToPasteboard(item) },
+                                onPinToggle: { viewModel.togglePin(item) },
+                                onDelete: { viewModel.deleteItem(item) }
+                            )
+                        }
+                        Divider().padding(.vertical, 4)
+                    }
+
+                    if !viewModel.recentItems.isEmpty {
+                        sectionHeader(icon: "clock", label: "Recent", tint: .secondary)
+                        ForEach(viewModel.recentItems) { item in
+                            ClipboardRowView(
+                                item: item,
+                                onCopy: { viewModel.copyToPasteboard(item) },
+                                onPinToggle: { viewModel.togglePin(item) },
+                                onDelete: { viewModel.deleteItem(item) }
+                            )
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+            }
+        }
+    }
+
+    private func sectionHeader(icon: String, label: String, tint: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundColor(tint)
+            Text(label)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+        }
+        .padding(.leading, 4)
+    }
+
+    private var settingsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Settings")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            HStack {
+                Text("Auto-delete").font(.system(size: 12))
+                Spacer()
+                Picker("", selection: Binding(
+                    get: { viewModel.settings.autoDeleteOption },
+                    set: { viewModel.updateAutoDelete(option: $0) }
+                )) {
+                    ForEach(AutoDeleteOption.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 120)
+                .font(.system(size: 12))
+            }
+
+            HStack {
+                Text("Max history").font(.system(size: 12))
+                Spacer()
+                TextField("", value: Binding(
+                    get: { viewModel.settings.maxHistoryItems },
+                    set: { viewModel.updateMaxHistory($0) }
+                ), formatter: NumberFormatter())
+                .frame(width: 50)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 12))
+            }
+
+            HStack {
+                Spacer()
+                Button("Clear All") { viewModel.clearAll() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.red)
+                    .keyboardShortcut("k", modifiers: [.command])
+            }
+        }
+    }
+    private struct WindowAccessor: NSViewRepresentable {
+        func makeNSView(context: Context) -> NSView {
+            let view = NSView()
+            DispatchQueue.main.async {
+                if let window = view.window {
+                    window.isOpaque = false
+                    window.backgroundColor = .clear
+                    window.hasShadow = true
+                }
+            }
+            return view
+        }
+        func updateNSView(_ nsView: NSView, context: Context) {}
+    }
+}
