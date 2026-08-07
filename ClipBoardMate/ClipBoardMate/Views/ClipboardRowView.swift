@@ -103,6 +103,14 @@ struct ClipboardRowView: View {
     }
 
     private var previewText: String {
-        item.isText ? (item.textContent ?? "") : ""
+        if item.isText {
+            return item.textContent ?? ""
+        }
+        
+        if item.isImage {
+            return item.fileName ?? ""
+        }
+        
+        return ""
     }
 }

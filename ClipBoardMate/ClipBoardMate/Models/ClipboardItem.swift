@@ -13,6 +13,7 @@ final class ClipboardItem {
     var type: ClipboardItemType
     var textContent: String?
     var imageData: Data?
+    var fileName: String?
     var createdAt: Date
     var pinned: Bool
 
@@ -21,6 +22,7 @@ final class ClipboardItem {
         type: ClipboardItemType,
         textContent: String? = nil,
         imageData: Data? = nil,
+        fileName: String? = nil,
         createdAt: Date = Date(),
         pinned: Bool = false
     ) {
@@ -28,6 +30,7 @@ final class ClipboardItem {
         self.type = type
         self.textContent = textContent
         self.imageData = imageData
+        self.fileName = fileName
         self.createdAt = createdAt
         self.pinned = pinned
     }
