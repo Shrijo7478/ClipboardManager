@@ -108,7 +108,7 @@ struct ClipboardRowView: View {
         }
         
         if item.isImage {
-            return item.fileName ?? ""
+            return item.fileName ?? "Copied Image"
         }
         
         return ""
