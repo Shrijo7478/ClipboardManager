@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import ServiceManagement
 
 struct ClipboardMainView: View {
     @EnvironmentObject private var viewModel: ClipboardViewModel
@@ -156,6 +157,31 @@ struct ClipboardMainView: View {
                 .frame(width: 50)
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 12))
+            }
+            HStack {
+                Text("Launch at Login")
+                    .font(.system(size: 12))
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: {
+                        SMAppService.mainApp.status == .enabled
+                    },
+                    set: { enabled in
+                        do {
+                            if enabled {
+                                try SMAppService.mainApp.register()
+                            } else {
+                                try SMAppService.mainApp.unregister()
+                            }
+                        } catch {
+                            print("Launch at Login error: \(error)")
+                        }
+                    }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
             }
 
             HStack {
