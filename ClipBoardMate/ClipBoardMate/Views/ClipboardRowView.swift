@@ -89,6 +89,13 @@ struct ClipboardRowView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 36, height: 36)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
+            } else if item.isFile, let image = item.imageThumbnail {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                
             } else {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.primary.opacity(0.06))
@@ -109,6 +116,10 @@ struct ClipboardRowView: View {
         
         if item.isImage {
             return item.fileName ?? "Copied Image"
+        }
+        
+        if item.isFile {
+            return item.fileName ?? "Copied File"
         }
         
         return ""

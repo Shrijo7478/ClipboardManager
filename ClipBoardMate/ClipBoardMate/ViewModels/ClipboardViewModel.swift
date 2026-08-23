@@ -79,6 +79,9 @@ final class ClipboardViewModel: ObservableObject, ClipboardMonitorDelegate {
             pb.setString(text, forType: .string)
         } else if item.isImage, let data = item.imageData, let nsImage = NSImage(data: data) {
             pb.writeObjects([nsImage])
+        } else if item.isFile, let path = item.fileURL {
+            let url = URL(fileURLWithPath: path)
+            pb.writeObjects([url as NSURL])
         }
     }
 

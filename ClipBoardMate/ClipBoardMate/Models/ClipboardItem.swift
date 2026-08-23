@@ -5,6 +5,7 @@ import SwiftUI
 enum ClipboardItemType: String, Codable {
     case text
     case image
+    case file
 }
 
 @Model
@@ -14,6 +15,7 @@ final class ClipboardItem {
     var textContent: String?
     var imageData: Data?
     var fileName: String?
+    var fileURL: String?
     var createdAt: Date
     var pinned: Bool
 
@@ -23,6 +25,7 @@ final class ClipboardItem {
         textContent: String? = nil,
         imageData: Data? = nil,
         fileName: String? = nil,
+        fileURL: String? = nil,
         createdAt: Date = Date(),
         pinned: Bool = false
     ) {
@@ -31,12 +34,14 @@ final class ClipboardItem {
         self.textContent = textContent
         self.imageData = imageData
         self.fileName = fileName
+        self.fileURL = fileURL
         self.createdAt = createdAt
         self.pinned = pinned
     }
 
     var isText: Bool { type == .text }
     var isImage: Bool { type == .image }
+    var isFile: Bool { type == .file }
 
     var imageThumbnail: Image? {
         guard let data = imageData, let nsImage = NSImage(data: data) else { return nil }

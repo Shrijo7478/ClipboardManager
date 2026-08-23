@@ -13,23 +13,23 @@ final class ClipboardMonitor {
     private var changeCount: Int
     private var timer: Timer?
     weak var delegate: ClipboardMonitorDelegate?
-
+    
     init() {
         self.changeCount = pasteboard.changeCount
     }
-
+    
     func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.checkForChanges()
         }
         if let timer { RunLoop.current.add(timer, forMode: .common) }
     }
-
+    
     func stop() {
         timer?.invalidate()
         timer = nil
     }
-
+    
     private func checkForChanges() {
         let currentCount = pasteboard.changeCount
         guard currentCount != changeCount else { return }
@@ -42,47 +42,68 @@ final class ClipboardMonitor {
         else {
             return false
         }
-
+        
         return type.conforms(to: .image)
     }
-
+    
+    private func fileIconData(for url: URL) -> Data? {
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        return icon.tiffRepresentation
+    }
+    
     private func readClipboard() {
-
-        // 1. Image files copied from Finder
+        
+        // 1. File copied from Finder
         if let fileURL = pasteboard.readObjects(forClasses: [NSURL.self])?.first as? URL {
-
+            
+            // Image file
             if isImageFile(fileURL),
                let image = NSImage(contentsOf: fileURL),
                let tiff = image.tiffRepresentation {
-
+                
                 delegate?.didCaptureClipboardItem(
                     ClipboardItem(
                         type: .image,
                         imageData: tiff,
-                        fileName: fileURL.lastPathComponent
+                        fileName: fileURL.lastPathComponent,
+                        fileURL: fileURL.path
                     )
                 )
                 return
             }
+            
+            // Non-image file
+            let iconData = fileIconData(for: fileURL)
+            
+            delegate?.didCaptureClipboardItem(
+                ClipboardItem(
+                    type: .file,
+                    imageData: iconData,
+                    fileName: fileURL.lastPathComponent,
+                    fileURL: fileURL.path
+                )
+            )
+            
+            return
         }
-
-        // 2. Images copied from Preview, Photos, Safari, etc.
+        
+        // 2. Images copied from Preview, Safari, Photos, screenshots, etc.
         if let nsImage = NSImage(pasteboard: pasteboard),
            let tiff = nsImage.tiffRepresentation {
-
+            
             delegate?.didCaptureClipboardItem(
                 ClipboardItem(
                     type: .image,
-                    imageData: tiff,
+                    imageData: tiff
                 )
             )
             return
         }
-
+        
         // 3. Text
         if let string = pasteboard.string(forType: .string),
            !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
+            
             delegate?.didCaptureClipboardItem(
                 ClipboardItem(
                     type: .text,
