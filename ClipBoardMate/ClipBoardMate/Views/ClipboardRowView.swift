@@ -77,7 +77,13 @@ struct ClipboardRowView: View {
 
     private var typeBadge: some View {
         Circle()
-            .fill(item.isImage ? Color.blue.opacity(0.7) : Color.green.opacity(0.7))
+            .fill(
+                item.isText
+                    ? Color.green.opacity(0.7)
+                    : item.isImage
+                        ? Color.blue.opacity(0.7)
+                        : Color.purple.opacity(0.7)
+            )
             .frame(width: 5, height: 5)
     }
 

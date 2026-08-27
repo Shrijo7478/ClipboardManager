@@ -4,6 +4,7 @@ import ServiceManagement
 
 struct ClipboardMainView: View {
     @EnvironmentObject private var viewModel: ClipboardViewModel
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -55,13 +56,28 @@ struct ClipboardMainView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
                 .font(.system(size: 12))
-            TextField("Search clipboard history", text: $viewModel.searchQuery)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
+
+            TextField(
+                "Search clipboard history",
+                text: $viewModel.searchQuery
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 13))
+            .focused($searchFocused)
+
+            if !searchFocused && viewModel.searchQuery.isEmpty {
+                Text("⌘F")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
-        .background(Color.white.opacity(0.06), in: .rect(cornerRadius: 8))
+        .background(
+            Color.white.opacity(searchFocused ? 0.10 : 0.06),
+            in: .rect(cornerRadius: 8)
+        )
+        .animation(.easeInOut(duration: 0.15), value: searchFocused)
     }
 
     private var emptyState: some View {
