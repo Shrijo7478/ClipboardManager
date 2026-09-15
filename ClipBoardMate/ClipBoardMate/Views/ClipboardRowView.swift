@@ -37,7 +37,7 @@ struct ClipboardRowView: View {
             Spacer()
 
             if isHovering {
-                HStack(spacing: 10) {
+                HStack(spacing: 4) {
                     actionButton(icon: "doc.on.doc", help: "Copy again", action: onCopy)
                     actionButton(
                         icon: item.pinned ? "pin.fill" : "pin",
@@ -50,11 +50,21 @@ struct ClipboardRowView: View {
                 .transition(.opacity)
             }
         }
-        .padding(10)
-        .background(
-            Color.white.opacity(isHovering ? 0.12 : 0.0),
-            in: .rect(cornerRadius: 10)
-        )
+        .padding(.horizontal, 9)
+        .padding(.vertical, 8)
+        .background {
+            if isHovering {
+                RoundedRectangle(cornerRadius: 9)
+                    .fill(Color.primary.opacity(0.07))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 9)
+                            .stroke(
+                                Color.primary.opacity(0.06),
+                                lineWidth: 0.5
+                            )
+                    }
+            }
+        }
         .contentShape(Rectangle())
         .onTapGesture { onCopy() }
         .onHover { hovering in
@@ -64,17 +74,25 @@ struct ClipboardRowView: View {
         }
     }
 
-    private func actionButton(icon: String, help: String, action: @escaping () -> Void, tint: Color = .secondary) -> some View {
+    private func actionButton(
+        icon: String,
+        help: String,
+        action: @escaping () -> Void,
+        tint: Color = .secondary
+    ) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 12))
                 .foregroundColor(tint)
-                .padding(6)
+                .frame(width: 26, height: 26)
+                .background(
+                    Color.primary.opacity(0.045),
+                    in: .rect(cornerRadius: 7)
+                )
         }
         .buttonStyle(.plain)
         .help(help)
     }
-
     private var typeBadge: some View {
         Circle()
             .fill(
@@ -94,17 +112,17 @@ struct ClipboardRowView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
             } else if item.isFile, let image = item.imageThumbnail {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
                 
             } else {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.primary.opacity(0.06))
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(Color.primary.opacity(0.045))
                     .frame(width: 36, height: 36)
                     .overlay(
                         Image(systemName: "doc.text")

@@ -18,7 +18,7 @@ struct ClipboardMainView: View {
                 .padding(.bottom, 8)
 
             Divider()
-                .opacity(0.3)
+                .opacity(0.12)
 
             if viewModel.items.isEmpty {
                 emptyState
@@ -27,13 +27,13 @@ struct ClipboardMainView: View {
             }
 
             Divider()
-                .opacity(0.3)
+                .opacity(0.12)
 
             settingsSection
                 .padding(14)
         }
         .frame(width: 420, height: 520)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .glassEffect(.regular, in: .rect(cornerRadius: 18))
         .background(WindowAccessor())
     }
 
@@ -71,23 +71,35 @@ struct ClipboardMainView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 7)
         .background(
-            Color.white.opacity(searchFocused ? 0.10 : 0.06),
-            in: .rect(cornerRadius: 8)
+            Color.primary.opacity(searchFocused ? 0.08 : 0.045),
+            in: .rect(cornerRadius: 9)
         )
+        .overlay {
+            RoundedRectangle(cornerRadius: 9)
+                .stroke(
+                    Color.primary.opacity(searchFocused ? 0.10 : 0.04),
+                    lineWidth: 0.5
+                )
+        }
         .animation(.easeInOut(duration: 0.15), value: searchFocused)
     }
 
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "doc.on.clipboard")
-                .font(.system(size: 30))
+                .font(.system(size: 28))
                 .foregroundColor(.secondary)
+                .padding(10)
+                .background(
+                    Color.primary.opacity(0.04),
+                    in: .rect(cornerRadius: 10)
+                )
             Text("No clipboard history yet")
                 .font(.system(size: 13, weight: .medium))
-            Text("Copy some text or images and they'll appear here.")
+            Text("Copy some text, images, or files and they'll appear here.")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
         }
@@ -96,8 +108,8 @@ struct ClipboardMainView: View {
 
     private var listContent: some View {
         ScrollView {
-            GlassEffectContainer {
-                VStack(alignment: .leading, spacing: 6) {
+            GlassEffectContainer (spacing: 4){
+                VStack(alignment: .leading, spacing: 4) {
                     if !viewModel.pinnedItems.isEmpty {
                         sectionHeader(icon: "pin.fill", label: "Pinned", tint: .orange)
                         ForEach(viewModel.pinnedItems) { item in
@@ -123,8 +135,8 @@ struct ClipboardMainView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+                .padding(.horizontal, 10)
+                .padding(.top, 7)
             }
         }
     }
@@ -138,76 +150,116 @@ struct ClipboardMainView: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.secondary)
         }
-        .padding(.leading, 4)
+        .padding(.leading, 3)
     }
 
     private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Settings")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.secondary)
+                .padding(.leading, 2)
 
-            HStack {
-                Text("Auto-delete").font(.system(size: 12))
-                Spacer()
-                Picker("", selection: Binding(
-                    get: { viewModel.settings.autoDeleteOption },
-                    set: { viewModel.updateAutoDelete(option: $0) }
-                )) {
-                    ForEach(AutoDeleteOption.allCases) { option in
-                        Text(option.label).tag(option)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(width: 120)
-                .font(.system(size: 12))
-            }
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Auto-delete")
+                        .font(.system(size: 12))
 
-            HStack {
-                Text("Max history").font(.system(size: 12))
-                Spacer()
-                TextField("", value: Binding(
-                    get: { viewModel.settings.maxHistoryItems },
-                    set: { viewModel.updateMaxHistory($0) }
-                ), formatter: NumberFormatter())
-                .frame(width: 50)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 12))
-            }
-            HStack {
-                Text("Launch at Login")
-                    .font(.system(size: 12))
+                    Spacer()
 
-                Spacer()
-
-                Toggle("", isOn: Binding(
-                    get: {
-                        SMAppService.mainApp.status == .enabled
-                    },
-                    set: { enabled in
-                        do {
-                            if enabled {
-                                try SMAppService.mainApp.register()
-                            } else {
-                                try SMAppService.mainApp.unregister()
-                            }
-                        } catch {
-                            print("Launch at Login error: \(error)")
+                    Picker("", selection: Binding(
+                        get: { viewModel.settings.autoDeleteOption },
+                        set: { viewModel.updateAutoDelete(option: $0) }
+                    )) {
+                        ForEach(AutoDeleteOption.allCases) { option in
+                            Text(option.label)
+                                .tag(option)
                         }
                     }
-                ))
-                .toggleStyle(.switch)
-                .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(width: 120)
+                    .font(.system(size: 12))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+
+                Divider()
+                    .opacity(0.08)
+                    .padding(.horizontal, 10)
+
+                HStack {
+                    Text("Max history")
+                        .font(.system(size: 12))
+
+                    Spacer()
+
+                    TextField("", value: Binding(
+                        get: { viewModel.settings.maxHistoryItems },
+                        set: { viewModel.updateMaxHistory($0) }
+                    ), formatter: NumberFormatter())
+                    .frame(width: 50)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+
+                Divider()
+                    .opacity(0.08)
+                    .padding(.horizontal, 10)
+
+                HStack {
+                    Text("Launch at Login")
+                        .font(.system(size: 12))
+
+                    Spacer()
+
+                    Toggle("", isOn: Binding(
+                        get: {
+                            SMAppService.mainApp.status == .enabled
+                        },
+                        set: { enabled in
+                            do {
+                                if enabled {
+                                    try SMAppService.mainApp.register()
+                                } else {
+                                    try SMAppService.mainApp.unregister()
+                                }
+                            } catch {
+                                print("Launch at Login error: \(error)")
+                            }
+                        }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+            }
+            .background(
+                Color.primary.opacity(0.035),
+                in: .rect(cornerRadius: 11)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 11)
+                    .stroke(
+                        Color.primary.opacity(0.05),
+                        lineWidth: 0.5
+                    )
             }
 
             HStack {
                 Spacer()
-                Button("Clear All") { viewModel.clearAll() }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.red)
-                    .keyboardShortcut("k", modifiers: [.command])
+
+                Button("Clear All") {
+                    viewModel.clearAll()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.red)
+                .keyboardShortcut("k", modifiers: [.command])
             }
+            .padding(.top, 1)
         }
     }
     private struct WindowAccessor: NSViewRepresentable {
